@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 模型适配测试局</title>
+<style>
+:root {
+  --bg:#07111f;
+  --card:rgba(255,255,255,.085);
+  --card2:rgba(255,255,255,.13);
+  --text:#eef3ff;
+  --muted:#9fb0d0;
+  --line:rgba(255,255,255,.15);
+  --a:#7c9cff;
+  --b:#6ee7b7;
+  --c:#facc15;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 15% 10%,rgba(124,156,255,.35),transparent 28%),
+    radial-gradient(circle at 85% 15%,rgba(110,231,183,.20),transparent 28%),
+    radial-gradient(circle at 45% 95%,rgba(250,204,21,.12),transparent 28%),
+    var(--bg);
+}
+.shell { width:min(1180px,calc(100vw - 28px)); margin:0 auto; padding:30px 0 56px; }
+.nav { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:24px; }
+.logo { display:flex; gap:10px; align-items:center; font-weight:900; }
+.mark { width:38px; height:38px; border-radius:15px; background:linear-gradient(135deg,var(--a),var(--b)); color:#07111f; display:grid; place-items:center; font-weight:950; }
+.pill { border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--muted); border-radius:999px; padding:8px 12px; font-size:13px; }
+.card { border:1px solid var(--line); background:linear-gradient(180deg,var(--card2),var(--card)); border-radius:28px; box-shadow:0 24px 80px rgba(0,0,0,.35); backdrop-filter:blur(16px); }
+.hero { display:grid; grid-template-columns:1.1fr .9fr; gap:20px; }
+.hero-main { padding:46px; min-height:560px; display:flex; flex-direction:column; justify-content:center; }
+.eyebrow { width:fit-content; background:linear-gradient(135deg,var(--b),#d4ffe9); color:#07111f; font-weight:900; border-radius:999px; padding:8px 12px; margin-bottom:18px; font-size:13px; }
+h1 { font-size:clamp(42px,6vw,78px); line-height:.96; letter-spacing:-.06em; margin:0 0 20px; }
+.lead { color:var(--muted); font-size:18px; line-height:1.85; max-width:780px; margin:0 0 28px; }
+.actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+button { font:inherit; border:0; cursor:pointer; transition:.18s ease; }
+button:hover { transform:translateY(-2px); }
+button:disabled { opacity:.38; cursor:not-allowed; transform:none; }
+.btn { border-radius:16px; padding:14px 20px; font-weight:900; }
+.primary { background:linear-gradient(135deg,var(--a),var(--b)); color:#07111f; }
+.ghost { background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--line); }
+.side { padding:24px; max-height:560px; overflow:auto; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.chip { padding:12px; border-radius:17px; background:rgba(255,255,255,.065); border:1px solid rgba(255,255,255,.12); }
+.chip b { display:block; font-size:14px; margin-bottom:4px; }
+.chip span { display:block; color:var(--muted); font-size:12px; line-height:1.45; }
+.test { display:none; padding:32px; }
+.topline { display:flex; gap:14px; align-items:center; margin-bottom:25px; }
+.progress { height:10px; background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.1); border-radius:999px; overflow:hidden; flex:1; }
+.bar { height:100%; width:0%; background:linear-gradient(90deg,var(--a),var(--b)); border-radius:999px; transition:width .25s ease; }
+.counter { color:var(--muted); font-weight:800; white-space:nowrap; }
+.question { font-size:clamp(25px,3.2vw,38px); line-height:1.28; letter-spacing:-.035em; margin:0; }
+.options { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:24px; }
+.opt { text-align:left; color:var(--text); min-height:118px; border-radius:20px; padding:19px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); }
+.opt:hover { background:rgba(255,255,255,.12); border-color:rgba(124,156,255,.55); }
+.opt.selected { background:linear-gradient(135deg,rgba(124,156,255,.24),rgba(110,231,183,.16)); border-color:rgba(110,231,183,.75); box-shadow:0 0 0 1px rgba(110,231,183,.22) inset; }
+.opt b { display:block; margin-bottom:8px; font-size:16px; }
+.opt span { color:var(--muted); line-height:1.65; font-size:14px; }
+.qnav { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:24px; flex-wrap:wrap; }
+.btn-nav { border-radius:16px; padding:13px 18px; font-weight:900; background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--line); }
+.tip { color:var(--muted); font-size:13px; line-height:1.6; }
+.result { display:none; overflow:hidden; }
+.result-head { display:grid; grid-template-columns:1fr 340px; gap:26px; align-items:center; padding:40px; border-bottom:1px solid var(--line); background:radial-gradient(circle at 80% 20%,rgba(110,231,183,.16),transparent 30%); }
+.badge { display:inline-flex; background:linear-gradient(135deg,var(--a),var(--b)); color:#07111f; border-radius:999px; padding:8px 13px; font-weight:950; margin-bottom:16px; }
+.result h2 { font-size:clamp(36px,5vw,64px); line-height:.98; letter-spacing:-.06em; margin:0 0 16px; }
+.desc { color:var(--muted); line-height:1.85; font-size:17px; margin:0; }
+.ring { width:250px; height:250px; border-radius:50%; display:grid; place-items:center; margin:auto; position:relative; background:conic-gradient(var(--b) 0deg,var(--a) var(--deg),rgba(255,255,255,.12) var(--deg),rgba(255,255,255,.12) 360deg); }
+.ring:before { content:""; position:absolute; inset:18px; border-radius:50%; background:#10192d; border:1px solid rgba(255,255,255,.12); }
+.ring-inner { position:relative; text-align:center; }
+.ring strong { display:block; font-size:54px; letter-spacing:-.06em; }
+.ring span { color:var(--muted); font-weight:800; font-size:13px; }
+.result-body { padding:32px 40px 40px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.box { border-radius:22px; padding:21px; background:rgba(255,255,255,.065); border:1px solid rgba(255,255,255,.12); }
+.box h3 { margin:0 0 12px; font-size:17px; }
+.box p,.box li { color:var(--muted); line-height:1.78; font-size:14px; }
+.full { grid-column:1/-1; }
+.rank { display:grid; gap:10px; }
+.rank-row { display:grid; grid-template-columns:150px 1fr 44px; gap:9px; align-items:center; color:var(--muted); font-size:13px; font-weight:700; }
+.track { height:10px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
+.fill { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--a),var(--b)); }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(18px); opacity:0; pointer-events:none; transition:.2s ease; background:rgba(16,25,45,.95); border:1px solid var(--line); border-radius:16px; padding:12px 16px; box-shadow:0 18px 50px rgba(0,0,0,.35); max-width:min(760px,calc(100vw - 32px)); line-height:1.6; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+@media(max-width:900px) {
+  .hero,.result-head,.result-body { grid-template-columns:1fr; }
+  .side { display:none; }
+  .hero-main,.test,.result-head,.result-body { padding:25px; }
+  .options { grid-template-columns:1fr; }
+  .ring { width:220px; height:220px; }
+}
+
+.side-note{color:var(--muted);font-size:13px;line-height:1.75;margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.055)}
+.chip{display:flex;align-items:center;min-height:54px}
+.chip b{margin-bottom:0}
+
+
+.result-note{margin:16px 0 0;color:var(--muted);font-size:13px;line-height:1.75;border-top:1px solid var(--line);padding-top:14px}
+
+
+.footer-credit{
+  margin-top:24px;
+  padding:18px 20px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.045);
+  border-radius:22px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+  text-align:center;
+}
+.footer-credit a{
+  color:var(--b);
+  text-decoration:none;
+  font-weight:800;
+}
+.footer-credit a:hover{
+  text-decoration:underline;
+}
+
+</style>
+</head>
+<body>
+<main class="shell">
+<nav class="nav">
+  <div class="logo"><div class="mark">AI</div><span>AI 模型适配测试局</span></div>
+  <div class="pill">MBTI 灵感玩法 · 纯娱乐向 · 不代表模型评测</div>
+</nav>
+
+<section id="start" class="hero">
+  <div class="card hero-main">
+    <div class="eyebrow">AI MODEL MATCHING GAME</div>
+    <h1>你的 AI 模型<br>适配档案</h1>
+    <p class="lead">这是一个受 MBTI 式测试启发的 AI 模型趣味匹配游戏。30 道选择题会根据你的任务习惯、信息处理方式、工作节奏和使用偏好，生成一份“AI 使用人格档案”。结果更像一张娱乐向的模型搭子卡，不是严肃测评、学术排名或官方推荐；题目里的描述也不代表任何模型的真实性能。</p>
+    <div class="actions">
+      <button id="startBtn" class="btn primary" type="button">开始匹配</button>
+      <button id="modelBtn" class="btn ghost" type="button">看看候选模型</button>
+    </div>
+  </div>
+  <aside class="card side">
+    <p class="side-note">本测试是受 MBTI 类人格测试启发做出的娱乐玩法。这里的模型只是作为结果标签出现，不构成性能排名、学术评价或使用推广。题目选项是游戏化表达，不代表模型真实能力或官方立场。</p>
+    <div id="modelGrid" class="grid"></div>
+  </aside>
+</section>
+
+<section id="test" class="card test">
+  <div class="topline">
+    <div class="progress"><div id="progressBar" class="bar"></div></div>
+    <div id="counter" class="counter"></div>
+  </div>
+  <h2 id="question" class="question"></h2>
+  <div id="options" class="options"></div>
+  <div class="qnav">
+    <button id="prevBtn" class="btn-nav" type="button">上一题</button>
+    <div id="questionTip" class="tip">选择答案后将自动进入下一题；如需修改，可返回上一题重新选择。</div>
+  </div>
+</section>
+
+<section id="result" class="card result">
+  <div class="result-head">
+    <div>
+      <div id="badge" class="badge"></div>
+      <h2 id="resultTitle"></h2>
+      <p id="desc" class="desc"></p>
+    </div>
+    <div class="ring" id="ring" style="--deg:0deg"><div class="ring-inner"><strong id="score">0%</strong><span>适配度</span></div></div>
+  </div>
+  <div class="result-body">
+    <div class="box"><h3>适合你使用它的原因</h3><ul id="strengths"></ul></div>
+    <div class="box"><h3>使用时需要注意</h3><ul id="risks"></ul></div>
+    <div class="box full"><h3>推荐使用场景</h3><p id="usecase"></p></div>
+    <div class="box full"><h3>模型适配排行 TOP 10</h3><div id="rank" class="rank"></div></div>
+    <div class="box full">
+      <h3>分享文案</h3>
+      <p id="shareText"></p>
+      <div class="actions">
+        <button id="copyBtn" class="btn primary" type="button">复制结果</button>
+        <button id="restartBtn" class="btn ghost" type="button">重新测试</button>
+        <button id="homeBtn" class="btn ghost" type="button">回到首页</button>
+      </div>
+      <p class="result-note">注：本测试为娱乐向互动玩法，灵感来自 MBTI 式测试。结果只表示你的使用偏好画像，不代表模型真实能力排名、官方立场或商业推荐。</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer-credit">
+  创作者：玄道 ｜ GitHub：<a href="https://github.com/xuandaoren/-AI-MBTI" target="_blank" rel="noopener noreferrer">https://github.com/xuandaoren/-AI-MBTI</a>
+</footer>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const MODELS = {"gpt": {"name": "GPT / OpenAI", "tag": "综合任务交付型", "desc": "适合你用于综合写作、复杂任务拆解、代码辅助、办公自动化、研究初稿和多工具协同。它的优势在于通用性强、交付完整、任务适配面广。", "strengths": ["综合能力强", "复杂任务交付稳定", "工具调用和办公协同成熟"], "risks": ["成本较高", "平台依赖明显", "极专业任务仍需人工校验"], "usecase": "适合报告起草、方案设计、代码辅助、研究初稿、跨领域知识整理和自动化办公。"}, "claude": {"name": "Claude / Anthropic", "tag": "长文审慎写作型", "desc": "适合你用于长文档阅读、审慎写作、政策文本、合规材料、复杂沟通和需要语气控制的任务。它偏稳健、克制、边界感强。", "strengths": ["长文本处理能力强", "写作质量稳定", "风险边界意识强"], "risks": ["表达可能偏保守", "强对抗观点输出较弱", "部分场景速度感不足"], "usecase": "适合长文总结、法律合规、政策审阅、管理备忘录、敏感文本润色和深度写作。"}, "gemini": {"name": "Gemini / Google", "tag": "多模态搜索生态型", "desc": "适合你用于多模态信息整合、搜索增强、图像视频理解、跨工具任务和资料汇总。它更适合需要把文本、图片、视频和网页信息放在一起处理的场景。", "strengths": ["多模态能力强", "搜索生态协同", "跨媒介任务适配"], "risks": ["产品边界较复杂", "深度单点任务需校验", "依赖生态环境"], "usecase": "适合多模态分析、图片视频理解、搜索研究、教育演示、资料整合和产品工作流。"}, "deepseek": {"name": "DeepSeek", "tag": "低成本推理工程型", "desc": "适合你用于代码、数学、逻辑推理、漏洞分析、算法推演和成本敏感型工程任务。它强调推理链条、工程效率和性价比。", "strengths": ["推理和代码能力突出", "成本效率高", "工程落地意识强"], "risks": ["表达包装相对朴素", "非技术场景需补充语气控制", "复杂产品工作流需外部工具配合"], "usecase": "适合代码开发、技术分析、漏洞研判、数学推理、算法验证和低成本批量任务。"}, "qwen": {"name": "Qwen / 通义千问", "tag": "中文全栈应用型", "desc": "适合你用于中文办公、代码、多模态、企业知识库和本土化场景。它在中文语境、开发者生态和实际应用之间比较均衡。", "strengths": ["中文语境适配强", "代码与工具生态较好", "政企场景可落地"], "risks": ["任务面较宽需明确方向", "高复杂任务仍需评测", "产品选择较多易混淆"], "usecase": "适合中文办公、知识库、代码辅助、行业方案、电商客服、教育培训和政企应用。"}, "kimi": {"name": "Kimi / Moonshot", "tag": "长上下文阅读型", "desc": "适合你用于超长文档、资料归纳、会议纪要、论文阅读、合同梳理和研究材料压缩。它的核心价值是吃长文本、读资料、做归纳。", "strengths": ["长上下文能力强", "文档阅读体验好", "资料归纳效率高"], "risks": ["短平快任务优势不明显", "依赖输入材料质量", "复杂推理需交叉验证"], "usecase": "适合长文档总结、论文阅读、合同审阅、材料汇编、会议纪要和研究资料清洗。"}, "glm": {"name": "GLM / 智谱", "tag": "智能体任务执行型", "desc": "适合你用于智能体、工具调用、多步骤任务、代码执行和自动化工作流。它更适合把 AI 当成任务执行系统，而不仅是聊天工具。", "strengths": ["Agent 工作流能力", "多步骤执行", "工程化任务调度"], "risks": ["任务边界需清晰", "复杂流程需人工监督", "部署和工具链要求较高"], "usecase": "适合智能体应用、自动化办公、复杂流程执行、代码任务和企业助手。"}, "ernie": {"name": "ERNIE / 文心", "tag": "知识增强内容型", "desc": "适合你用于中文内容生产、知识问答、搜索增强、营销文案和平台型应用。它偏向知识、内容和成熟产品生态结合。", "strengths": ["知识增强能力", "中文内容生产", "平台生态支撑"], "risks": ["技术锋芒感不强", "开源自由度有限", "专业深挖需外部验证"], "usecase": "适合中文问答、内容生成、营销文本、搜索增强、办公助手和知识服务。"}, "hunyuan": {"name": "腾讯混元", "tag": "社交产品生态型", "desc": "适合你用于社交内容、企业微信生态、多模态创作、客服与协作场景。它更强调产品入口、组织协作和内容分发。", "strengths": ["社交生态接入", "企业协作适配", "多模态内容能力"], "risks": ["深度研究任务需补强", "开放部署灵活性有限", "依赖产品生态"], "usecase": "适合社交内容、企业协作、客服、腾讯生态应用、多模态创作和团队办公。"}, "doubao": {"name": "豆包 / Seed", "tag": "大众交互增长型", "desc": "适合你用于日常问答、陪伴、短视频内容、多模态创作和低门槛 AI 应用。它更适合普通用户高频使用。", "strengths": ["交互门槛低", "用户体验友好", "内容和多媒体能力强"], "risks": ["专业深度需校验", "容易偏娱乐化", "严肃行业场景需二次适配"], "usecase": "适合日常助手、短视频脚本、图文生成、语音互动、教育陪伴和轻量办公。"}, "minimax": {"name": "MiniMax", "tag": "多媒体生成矩阵型", "desc": "适合你用于文本、语音、音乐、视频、角色对话和智能体应用。它适合需要多种生成能力组合的内容生产场景。", "strengths": ["多媒体生成能力", "角色对话与智能体", "内容生产链完整"], "risks": ["严肃研究场景需校验", "能力矩阵复杂", "需要清晰产品定位"], "usecase": "适合视频脚本、语音角色、音乐生成、内容 IP、智能体陪伴和创意生产。"}, "sensenova": {"name": "SenseNova / 日日新", "tag": "视觉多模态推理型", "desc": "适合你用于视觉理解、图像检索、空间智能、场景识别和多模态推理。它更适合需要看图、看场景、看结构的任务。", "strengths": ["视觉理解强", "空间与场景推理", "图像检索和多模态分析"], "risks": ["纯文本通用任务不是最突出", "行业属性较强", "算力和部署要求较高"], "usecase": "适合图像识别、视频理解、视觉质检、安防分析、空间智能和多模态搜索。"}, "spark": {"name": "讯飞星火", "tag": "语音教育办公型", "desc": "适合你用于语音交互、教育学习、办公写作、会议转写和中文场景助手。它的优势在语音、教育和实用办公。", "strengths": ["语音能力强", "教育场景适配", "办公辅助成熟"], "risks": ["技术社区声量相对有限", "极复杂推理需校验", "多模态创意场景需补强"], "usecase": "适合语音助手、会议转写、教学辅导、中文写作、办公总结和学习陪伴。"}, "pangu": {"name": "华为盘古", "tag": "行业基础设施型", "desc": "适合你用于政企私有化、工业、金融、医疗、气象、矿山等行业系统。它更像行业基础设施，而不是普通聊天机器人。", "strengths": ["行业模型能力", "私有化和安全可控", "国产算力协同"], "risks": ["消费级体验不突出", "部署周期较长", "需要行业数据和工程集成"], "usecase": "适合工业智能、政企私有云、金融风控、医疗辅助、气象预测和大型组织数字化。"}, "yi": {"name": "Yi / 零一万物", "tag": "轻量开源双语型", "desc": "适合你用于中英双语、开源实验、轻量应用、创业产品和开发者场景。它适合希望快速试验和二次开发的人。", "strengths": ["中英双语能力", "开源和轻量应用", "创业产品适配"], "risks": ["生态规模需积累", "品牌声量波动", "严肃企业场景需补充支撑"], "usecase": "适合双语应用、轻量聊天、开发者原型、创业产品、开源实验和内容助手。"}, "baichuan": {"name": "百川", "tag": "医疗可信问答型", "desc": "适合你用于医疗、知识问答、低幻觉、证据增强和垂直行业可信应用。它更适合高责任知识场景。", "strengths": ["医疗场景积累", "可信问答", "证据链意识"], "risks": ["通用娱乐性不强", "合规要求高", "用户增长偏慢"], "usecase": "适合医疗问答、健康知识、垂直行业助手、可信知识库和低幻觉场景。"}, "internlm": {"name": "InternLM / 书生", "tag": "科研开源训练型", "desc": "适合你用于模型训练、开源研究、多模态实验、评测和工具链建设。它更适合研究者、开发者和实验室场景。", "strengths": ["开源研究属性强", "训练工具链完整", "社区和学术场景适配"], "risks": ["普通用户门槛较高", "产品化体验较弱", "商业场景需二次封装"], "usecase": "适合科研实验、模型微调、评测体系、多模态研究、开源教学和训练工具链。"}, "stepfun": {"name": "StepFun / 阶跃星辰", "tag": "高效智能体推理型", "desc": "适合你用于高效推理、长上下文、多模态和智能体执行。它适合追求高智能密度和低延迟任务的人。", "strengths": ["高效推理", "长上下文能力", "智能体执行"], "risks": ["生态仍在建设", "场景验证需要积累", "品牌认知需强化"], "usecase": "适合智能体、复杂问答、多模态任务、长文理解、实时推理和高效应用。"}, "llama": {"name": "Llama / Meta", "tag": "开放部署自由型", "desc": "适合你用于开源部署、本地模型、私有化改造、微调和技术社区应用。它适合追求自主控制权的用户。", "strengths": ["开放权重生态", "本地部署灵活", "社区改造能力强"], "risks": ["需要工程维护", "成品体验差异大", "安全治理较分散"], "usecase": "适合本地部署、企业私有化、开源微调、研究实验、边缘应用和开发者生态。"}, "grok": {"name": "Grok / xAI", "tag": "实时舆论表达型", "desc": "适合你用于热点分析、社交平台内容、实时信息、幽默吐槽和强观点表达。它适合需要速度、锋芒和传播性的场景。", "strengths": ["实时舆论感知", "表达有辨识度", "社媒传播能力强"], "risks": ["严肃合规场景需谨慎", "表达容易过锐", "事实校验仍然必要"], "usecase": "适合热点评论、社媒内容、舆情观察、轻量观点生成、幽默表达和趋势感知。"}, "nova": {"name": "Amazon Nova", "tag": "云端企业生产型", "desc": "适合你用于云上模型服务、企业 API、多模态生产应用和成本可控的规模化部署。它更适合 AWS 生态内的业务系统。", "strengths": ["云原生部署", "企业成本控制", "可定制应用"], "risks": ["依赖云生态", "公众认知较低", "偏平台型而非聊天型"], "usecase": "适合云端应用、企业 API、客服系统、内容审核、多模态处理和规模化业务集成。"}, "mai": {"name": "Microsoft MAI / Copilot", "tag": "办公生产力嵌入型", "desc": "适合你用于 Office、Windows、Teams、企业协作、会议纪要和办公自动化。它适合把 AI 嵌入日常组织流程。", "strengths": ["办公软件集成", "企业协作能力", "生产力场景明确"], "risks": ["受平台产品形态约束", "高级自定义需企业环境", "复杂研究需补充模型"], "usecase": "适合文档、表格、邮件、会议、企业知识库、协同办公和组织内部自动化。"}, "sonar": {"name": "Perplexity Sonar", "tag": "联网检索研究型", "desc": "适合你用于实时搜索、引用来源、快速调研、竞品分析和事实核查。它更像研究检索助手，而不是封闭聊天模型。", "strengths": ["联网检索", "引用透明", "快速研究"], "risks": ["依赖搜索质量", "深度原创写作需补强", "信息噪声需要筛选"], "usecase": "适合新闻追踪、事实核查、资料检索、市场研究、竞品分析和引用型报告。"}, "nemotron": {"name": "NVIDIA Nemotron", "tag": "算力推理基础设施型", "desc": "适合你用于推理优化、企业部署、GPU 生态、合成数据和模型基础设施。它更适合技术底座和大规模 AI 工程。", "strengths": ["算力生态协同", "推理部署能力", "企业 AI 基础设施"], "risks": ["普通用户感知弱", "偏底层工程", "高度依赖硬件生态"], "usecase": "适合 GPU 推理、企业模型部署、合成数据、物理 AI、AI 基础设施和开发者平台。"}, "granite": {"name": "IBM Granite", "tag": "企业治理可信型", "desc": "适合你用于企业合规、代码、私有化部署、可解释 AI 和治理要求较高的业务场景。它偏稳健、严肃、制度化。", "strengths": ["企业治理", "可信与合规", "私有化部署"], "risks": ["消费级传播弱", "表达不够娱乐化", "模型热度不高"], "usecase": "适合企业知识库、合规审计、代码助手、私有化系统、金融业务和组织治理。"}, "mistral": {"name": "Mistral", "tag": "轻量开源效率型", "desc": "适合你用于轻量部署、边缘场景、开源应用、低成本推理和效率优先的产品。它适合不想被巨型平台锁死的人。", "strengths": ["轻量高效", "开源部署", "边缘应用适配"], "risks": ["生态规模小于巨头", "复杂综合任务需组合", "消费级入口有限"], "usecase": "适合边缘部署、快速原型、低成本自动化、开发者工具、私有应用和小团队产品。"}, "cohere": {"name": "Cohere Command", "tag": "企业 RAG 检索型", "desc": "适合你用于企业知识库、RAG、检索增强、Rerank、多语言业务和内部文档问答。它适合组织知识管理。", "strengths": ["RAG 能力强", "企业知识库适配", "检索排序能力"], "risks": ["大众场景知名度低", "创意娱乐性弱", "依赖企业销售和集成"], "usecase": "适合企业搜索、知识库问答、RAG 系统、客户支持、多语言文档和内部信息检索。"}, "jamba": {"name": "AI21 Jamba", "tag": "长上下文混合架构型", "desc": "适合你用于长上下文文档、结构化企业任务、文本生成和混合架构实验。它更偏低调、稳定、文档型。", "strengths": ["长上下文", "文档工作流", "混合架构效率"], "risks": ["公众声量有限", "生态较窄", "多媒体能力不突出"], "usecase": "适合长文档处理、企业文本生成、结构化问答、文档工作流和模型架构实验。"}};
+const QUESTIONS = [{"q": "你主要想用 AI 解决什么问题？", "a": [["综合写作和方案交付", "报告、方案、邮件、代码、总结都想一站式完成。", {"gpt": 3, "qwen": 2, "claude": 1}], ["长文档阅读和资料压缩", "论文、合同、政策、会议材料需要快速读完。", {"kimi": 3, "claude": 2, "jamba": 2}], ["代码、推理和技术攻坚", "算法、漏洞、脚本、工程问题是重点。", {"deepseek": 3, "qwen": 2, "glm": 1}], ["图像、视频和多模态任务", "图片、视频、语音、文本要一起处理。", {"gemini": 3, "sensenova": 2, "minimax": 2}], ["企业内部知识库和流程", "组织文档、权限、私有化、合规和检索更重要。", {"cohere": 3, "granite": 2, "pangu": 2}]]}, {"q": "你更看重 AI 的哪种能力？", "a": [["通用性", "什么任务都能处理，结果足够完整。", {"gpt": 3, "qwen": 2, "gemini": 1}], ["稳定性", "回答谨慎、边界清晰、不乱发挥。", {"claude": 3, "granite": 2, "cohere": 1}], ["性价比", "性能能打，价格和部署成本要低。", {"deepseek": 3, "mistral": 2, "minimax": 1}], ["生态嵌入", "能进入办公软件、云平台或企业系统。", {"mai": 3, "nova": 2, "hunyuan": 1}], ["开放可控", "能本地部署、能改、能审计、能长期掌控。", {"llama": 3, "internlm": 2, "pangu": 2}]]}, {"q": "你每天使用 AI 的频率大概会怎样？", "a": [["高频办公", "每天写文档、总结、邮件、表格和材料。", {"mai": 3, "gpt": 2, "qwen": 2}], ["高频学习", "查概念、做笔记、问问题、整理课程。", {"spark": 3, "doubao": 2, "ernie": 1}], ["高频开发", "写代码、调试、测试、读文档。", {"deepseek": 3, "qwen": 2, "glm": 2}], ["高频资讯追踪", "看新闻、查来源、追热点、做简报。", {"sonar": 3, "gemini": 2, "grok": 1}], ["低频但重任务", "不是天天用，但一用就是长文档或复杂项目。", {"kimi": 3, "claude": 2, "jamba": 1}]]}, {"q": "你最常处理的材料是什么？", "a": [["中文政策、报告、方案", "需要符合中文表达和组织语境。", {"qwen": 3, "ernie": 2, "pangu": 2}], ["长 PDF、论文、合同", "材料长、信息密、需要提炼。", {"kimi": 3, "claude": 2, "jamba": 2}], ["代码库、日志、漏洞信息", "需要推理、定位、修复和验证。", {"deepseek": 3, "qwen": 2, "nemotron": 1}], ["图片、视频、音频", "需要视觉理解、生成或转写。", {"gemini": 2, "sensenova": 3, "minimax": 2, "spark": 1}], ["企业内部文档", "需要检索、权限、知识库和审计。", {"cohere": 3, "granite": 2, "nova": 2}]]}, {"q": "你希望 AI 的回答风格更接近哪种？", "a": [["结构化、完整、有执行步骤", "最好直接形成可以使用的成品。", {"gpt": 3, "qwen": 2, "ernie": 1}], ["谨慎、细腻、少误判", "宁可慢一点，也不要乱下结论。", {"claude": 3, "granite": 2, "cohere": 1}], ["短、快、硬核", "直接给关键逻辑、代码或结论。", {"deepseek": 3, "mistral": 2, "stepfun": 1}], ["有趣、实时、有锋芒", "适合热点、社媒、吐槽和传播。", {"grok": 3, "doubao": 2, "sonar": 1}], ["亲和、低门槛、日常化", "普通用户也能轻松使用。", {"doubao": 3, "spark": 2, "hunyuan": 1}]]}, {"q": "你使用 AI 时最担心什么？", "a": [["胡编乱造", "没有依据也说得很肯定。", {"claude": 3, "sonar": 2, "cohere": 1}], ["数据安全", "企业数据、项目资料或内部文档不能乱传。", {"pangu": 3, "granite": 2, "llama": 2}], ["成本过高", "频繁使用导致 API 或订阅成本失控。", {"deepseek": 3, "mistral": 2, "minimax": 1}], ["不能接入现有系统", "不能连办公、云、知识库或工作流。", {"mai": 3, "nova": 2, "cohere": 1}], ["结果太普通", "没有观点、没有传播力、没有创意。", {"grok": 2, "minimax": 2, "doubao": 2}]]}, {"q": "你是否需要联网检索和引用来源？", "a": [["非常需要", "没有来源就不放心。", {"sonar": 3, "gemini": 2, "cohere": 1}], ["偶尔需要", "大多数时候更看重写作和总结。", {"gpt": 2, "claude": 2, "qwen": 1}], ["不太需要", "我更关心推理、代码或内部材料。", {"deepseek": 2, "llama": 2, "kimi": 1}], ["需要，但更偏中文内容生态", "搜索、百科、内容平台结合更重要。", {"ernie": 2, "qwen": 2, "hunyuan": 1}], ["需要实时热点和社媒反应", "舆论温度比正式来源更重要。", {"grok": 3, "sonar": 1, "doubao": 1}]]}, {"q": "你是否需要 AI 帮你写代码？", "a": [["重度需要", "开发、调试、算法和脚本是核心。", {"deepseek": 3, "qwen": 2, "glm": 2}], ["中度需要", "偶尔写脚本、改代码、解释报错。", {"gpt": 2, "claude": 1, "mistral": 1}], ["更需要工程部署", "模型服务、推理优化、GPU 和平台。", {"nemotron": 3, "nova": 2, "pangu": 1}], ["更需要开源微调", "本地跑、改模型、做实验。", {"llama": 3, "internlm": 2, "mistral": 2}], ["基本不需要", "我更关心写作、办公或内容。", {"spark": 2, "doubao": 2, "ernie": 1}]]}, {"q": "你是否需要处理超长上下文？", "a": [["经常需要", "几十页甚至上百页材料要读。", {"kimi": 3, "claude": 2, "jamba": 2}], ["需要长项目上下文", "多轮任务、代码库或复杂流程。", {"glm": 2, "stepfun": 2, "gpt": 2}], ["主要是短问答", "快速解决问题即可。", {"doubao": 2, "mistral": 2, "spark": 1}], ["长文档还要联网查证", "需要读材料，也需要外部来源。", {"sonar": 3, "gemini": 2, "cohere": 1}], ["长上下文必须私有化", "材料敏感，不能放到普通公有云。", {"pangu": 3, "granite": 2, "llama": 2}]]}, {"q": "你是否需要图像或视频能力？", "a": [["非常需要视觉理解", "看图、识别、空间关系、场景分析。", {"sensenova": 3, "gemini": 2, "qwen": 1}], ["更需要视频和创意生成", "短视频、角色、音乐、配音、剧本。", {"minimax": 3, "doubao": 2, "hunyuan": 1}], ["需要图文混合搜索和总结", "图、网页、文本一起分析。", {"gemini": 3, "sonar": 1, "ernie": 1}], ["需要办公里的多模态", "文档、会议、截图、语音都进入流程。", {"mai": 2, "nova": 2, "spark": 1}], ["不需要，多数是文本或代码", "视觉能力不是核心。", {"deepseek": 2, "claude": 2, "kimi": 1}]]}, {"q": "你是否需要语音能力？", "a": [["非常需要", "会议转写、语音对话、教育讲解。", {"spark": 3, "doubao": 2, "mai": 1}], ["需要角色语音和内容生成", "配音、音乐、角色互动。", {"minimax": 3, "doubao": 2, "hunyuan": 1}], ["需要多模态实时交互", "语音、图像、文本一起处理。", {"gemini": 2, "gpt": 2, "stepfun": 1}], ["不重视语音", "文字和代码更重要。", {"deepseek": 2, "kimi": 1, "claude": 1}], ["需要企业会议和办公集成", "会议纪要、任务提取、协作。", {"mai": 3, "nova": 1, "qwen": 1}]]}, {"q": "你的组织或项目是否重视私有化部署？", "a": [["非常重视", "数据、模型、权限都要可控。", {"pangu": 3, "llama": 3, "granite": 2}], ["比较重视", "至少要能企业级接入和审计。", {"cohere": 2, "nova": 2, "qwen": 1}], ["不太重视", "公有云和在线产品能用就行。", {"gpt": 2, "claude": 2, "gemini": 1}], ["重视开源自由", "我想自己微调和改造。", {"llama": 3, "internlm": 2, "mistral": 2}], ["重视轻量部署", "小团队、边缘设备或低成本服务。", {"mistral": 3, "yi": 2, "minimax": 1}]]}, {"q": "你更希望 AI 嵌入哪里？", "a": [["Office、Windows、会议和邮件", "办公软件里直接用。", {"mai": 3, "gpt": 1, "qwen": 1}], ["云平台和业务系统", "API、数据库、客服、内容审核。", {"nova": 3, "cohere": 2, "granite": 1}], ["微信、社交和内容平台", "聊天、社群、内容分发。", {"hunyuan": 3, "doubao": 2, "ernie": 1}], ["开发环境和终端", "IDE、代码库、自动化脚本。", {"deepseek": 3, "qwen": 2, "glm": 2}], ["本地电脑或私有服务器", "不依赖外部平台。", {"llama": 3, "mistral": 2, "internlm": 1}]]}, {"q": "你更适合哪种知识库方案？", "a": [["企业 RAG 和引用检索", "文档问答、Rerank、来源透明。", {"cohere": 3, "sonar": 2, "granite": 1}], ["中文政企知识库", "公文、报告、流程、制度材料。", {"qwen": 3, "ernie": 2, "pangu": 2}], ["私有化行业知识库", "金融、工业、医疗、政务等敏感数据。", {"pangu": 3, "granite": 2, "baichuan": 1}], ["个人资料库", "论文、笔记、合同、会议材料。", {"kimi": 3, "claude": 2, "jamba": 1}], ["搜索型知识库", "需要持续抓取网页和实时信息。", {"sonar": 3, "gemini": 2, "ernie": 1}]]}, {"q": "你更常做哪类写作？", "a": [["正式报告和方案", "结构完整、语言稳、能交付。", {"gpt": 3, "qwen": 2, "claude": 1}], ["长文润色和审阅", "语气、边界、逻辑、风险都要管。", {"claude": 3, "kimi": 1, "granite": 1}], ["营销文案和内容创作", "需要标题、节奏、传播感。", {"doubao": 2, "minimax": 2, "ernie": 1, "grok": 1}], ["技术文档和代码说明", "准确、可复现、面向工程。", {"deepseek": 2, "qwen": 2, "mistral": 1}], ["学术或研究摘要", "读资料、列证据、写综述。", {"sonar": 2, "kimi": 2, "cohere": 1}]]}, {"q": "你是否重视 AI 的“观点表达”？", "a": [["非常重视", "我要鲜明观点、标题感和传播力。", {"grok": 3, "doubao": 2, "minimax": 1}], ["重视，但要有证据", "观点必须有来源和事实支撑。", {"sonar": 3, "claude": 1, "gpt": 1}], ["不重视", "我更要工具性和执行力。", {"deepseek": 2, "glm": 2, "nova": 1}], ["要正式稳妥", "观点可以有，但不能失控。", {"claude": 2, "qwen": 2, "granite": 1}], ["要适配中文内容生态", "标题、短文、问答、平台发布。", {"ernie": 2, "hunyuan": 2, "doubao": 1}]]}, {"q": "你做研究时最希望 AI 帮你哪一步？", "a": [["快速检索资料", "找来源、列引用、做事实核查。", {"sonar": 3, "gemini": 2, "cohere": 1}], ["读长材料", "把大量 PDF 和文档压缩成要点。", {"kimi": 3, "claude": 2, "jamba": 1}], ["形成初稿", "直接写成一篇可改的文章或报告。", {"gpt": 3, "qwen": 2, "ernie": 1}], ["做逻辑推演", "构建因果链、模型、假设和反例。", {"deepseek": 3, "stepfun": 2, "claude": 1}], ["建立本地资料库", "长期积累、私有管理、可检索。", {"cohere": 2, "llama": 2, "pangu": 2}]]}, {"q": "你的主要约束是什么？", "a": [["预算有限", "要便宜、快、可批量使用。", {"deepseek": 3, "mistral": 2, "minimax": 1}], ["资料敏感", "数据不能出域，合规优先。", {"pangu": 3, "granite": 2, "llama": 2}], ["时间紧", "要快速给可用结果。", {"gpt": 2, "doubao": 2, "qwen": 1}], ["任务复杂", "需要多步骤规划和工具调用。", {"glm": 3, "gpt": 2, "stepfun": 2}], ["系统集成难", "需要接入云、办公或企业系统。", {"nova": 3, "mai": 2, "cohere": 1}]]}, {"q": "你是否愿意折腾模型部署？", "a": [["非常愿意", "本地部署、微调、评测都可以。", {"llama": 3, "internlm": 2, "mistral": 2}], ["愿意，但更关心工程性能", "推理速度、吞吐、GPU、服务稳定。", {"nemotron": 3, "deepseek": 1, "nova": 1}], ["不愿意", "最好打开网页或 App 就能用。", {"doubao": 2, "gpt": 2, "claude": 1}], ["只接受企业级部署", "要 SLA、权限、审计和支持。", {"granite": 2, "cohere": 2, "pangu": 2}], ["小团队轻量部署即可", "不要太复杂，成本低优先。", {"mistral": 3, "yi": 2, "minimax": 1}]]}, {"q": "你最需要 AI 提升哪类效率？", "a": [["个人办公效率", "文档、邮件、会议、计划。", {"mai": 3, "gpt": 2, "qwen": 1}], ["技术研发效率", "代码、测试、Bug、部署。", {"deepseek": 3, "qwen": 2, "glm": 1}], ["内容生产效率", "脚本、配音、图片、视频、音乐。", {"minimax": 3, "doubao": 2, "hunyuan": 1}], ["组织知识效率", "知识库、检索、问答、审计。", {"cohere": 3, "granite": 2, "pangu": 1}], ["学习和教育效率", "讲解、练习、总结、语音互动。", {"spark": 3, "ernie": 1, "doubao": 1}]]}, {"q": "你更偏好哪类产品形态？", "a": [["聊天助手", "直接问答，能写能改能分析。", {"gpt": 2, "claude": 2, "qwen": 2}], ["搜索答案引擎", "每个结论最好带来源。", {"sonar": 3, "gemini": 2, "cohere": 1}], ["办公 Copilot", "嵌入文档、邮件、会议和表格。", {"mai": 3, "nova": 1, "gpt": 1}], ["开发者模型", "API、开源、微调、部署。", {"llama": 2, "deepseek": 2, "mistral": 2}], ["内容创作工具", "视频、语音、图像、角色和脚本。", {"minimax": 3, "doubao": 2, "hunyuan": 1}]]}, {"q": "你是否需要模型给出“可解释过程”？", "a": [["需要逻辑链条", "结论怎么来的必须清楚。", {"deepseek": 3, "claude": 2, "stepfun": 1}], ["需要引用来源", "过程不如来源重要。", {"sonar": 3, "cohere": 2, "gemini": 1}], ["需要结构化步骤", "直接列计划和执行路径。", {"gpt": 3, "qwen": 2, "glm": 1}], ["需要审计记录", "企业流程要能追责和复盘。", {"granite": 3, "pangu": 2, "nova": 1}], ["不需要太多过程", "给我短答案和可用结果。", {"mistral": 2, "doubao": 2, "grok": 1}]]}, {"q": "你是否需要行业模型？", "a": [["非常需要", "工业、政务、金融、医疗等强行业场景。", {"pangu": 3, "granite": 2, "baichuan": 2}], ["主要需要医疗可信问答", "健康、医学、证据链和低幻觉。", {"baichuan": 3, "claude": 1, "cohere": 1}], ["主要需要企业知识管理", "RAG、检索、内部材料。", {"cohere": 3, "granite": 2, "nova": 1}], ["不需要行业模型", "通用模型足够。", {"gpt": 2, "qwen": 2, "claude": 1}], ["需要教育和办公场景", "教学、语音、会议和写作。", {"spark": 3, "ernie": 1, "mai": 1}]]}, {"q": "你更重视模型的哪种生态？", "a": [["开发者生态", "API、模型权重、工具链和社区。", {"llama": 3, "qwen": 2, "mistral": 2}], ["企业云生态", "云服务、权限、运维、集成。", {"nova": 3, "granite": 2, "cohere": 1}], ["办公软件生态", "文档、会议、邮件、表格。", {"mai": 3, "gpt": 1, "qwen": 1}], ["内容平台生态", "短视频、社交、图文、语音。", {"doubao": 3, "hunyuan": 2, "minimax": 1}], ["科研训练生态", "开源训练、评测、微调和实验。", {"internlm": 3, "llama": 2, "yi": 1}]]}, {"q": "你需要 AI 帮你做决策吗？", "a": [["需要战略分析", "多因素、长链条、风险和建议。", {"gpt": 2, "claude": 2, "qwen": 2}], ["需要证据型决策", "先查资料、列来源、再判断。", {"sonar": 3, "gemini": 2, "cohere": 1}], ["需要技术决策", "架构、性能、成本和可行性。", {"deepseek": 3, "nemotron": 2, "mistral": 1}], ["需要企业治理决策", "合规、安全、流程和责任边界。", {"granite": 3, "pangu": 2, "claude": 1}], ["不需要深决策", "主要是日常辅助和内容生成。", {"doubao": 2, "spark": 2, "minimax": 1}]]}, {"q": "你是否要把 AI 用在公共传播中？", "a": [["经常要", "标题、评论、热点、社媒传播。", {"grok": 3, "doubao": 2, "minimax": 1}], ["偶尔要", "需要正式又有传播力的文本。", {"gpt": 2, "qwen": 2, "ernie": 1}], ["更偏视频和音频传播", "短视频、配音、角色、音乐。", {"minimax": 3, "doubao": 2, "hunyuan": 1}], ["不用于传播", "主要是内部研究和办公。", {"claude": 2, "kimi": 2, "cohere": 1}], ["用于企业品牌内容", "内容生成但要稳妥。", {"ernie": 2, "hunyuan": 2, "mai": 1}]]}, {"q": "你更关注 AI 的哪种长期价值？", "a": [["成为个人超级助手", "帮我处理多数信息工作。", {"gpt": 3, "qwen": 2, "claude": 1}], ["成为组织知识系统", "沉淀企业知识和流程。", {"cohere": 3, "granite": 2, "pangu": 2}], ["成为技术基础设施", "算力、部署、推理、模型服务。", {"nemotron": 3, "nova": 2, "llama": 1}], ["成为开放自主能力", "可控、可改、可迁移、可长期掌握。", {"llama": 3, "mistral": 2, "internlm": 2}], ["成为内容生产引擎", "持续生成图文、视频、语音和 IP。", {"minimax": 3, "doubao": 2, "hunyuan": 1}]]}, {"q": "你对中文能力的要求有多高？", "a": [["非常高", "公文、报告、组织表达、本土语境都要准。", {"qwen": 3, "ernie": 2, "pangu": 1}], ["高，但更偏日常", "聊天、学习、短文、内容生产。", {"doubao": 2, "spark": 2, "ernie": 1}], ["中等", "中英双语都要兼顾。", {"yi": 2, "qwen": 2, "gpt": 1}], ["不高", "技术、代码和英文材料更多。", {"deepseek": 2, "mistral": 1, "claude": 1}], ["需要中文语音和教育", "讲解、转写、学习陪伴。", {"spark": 3, "doubao": 1, "mai": 1}]]}, {"q": "你是否更偏好轻量模型或小团队可用方案？", "a": [["是，轻量高效优先", "不要太重，不要太贵。", {"mistral": 3, "yi": 2, "minimax": 1}], ["是，但推理能力不能弱", "小而强最好。", {"deepseek": 2, "stepfun": 2, "mistral": 1}], ["不是，我要最强综合能力", "大模型成本可以接受。", {"gpt": 3, "claude": 2, "gemini": 1}], ["不是，我要企业级稳定", "服务、合规、SLA 更重要。", {"granite": 2, "nova": 2, "cohere": 2}], ["看是否能私有部署", "轻量只是因素之一。", {"llama": 3, "pangu": 2, "internlm": 1}]]}, {"q": "最后，你希望测试结果推荐的模型最适合你做什么？", "a": [["研究写作和综合分析", "能读、能写、能推理、能成稿。", {"gpt": 3, "claude": 2, "qwen": 2}], ["技术研发和工程落地", "代码、算法、部署、性能都要能帮忙。", {"deepseek": 3, "qwen": 2, "nemotron": 1}], ["长文档和资料处理", "大量材料快速总结和归纳。", {"kimi": 3, "jamba": 2, "claude": 1}], ["企业知识和私有化", "组织内部长期使用、安全可控。", {"cohere": 2, "granite": 2, "pangu": 2, "llama": 1}], ["内容创作和传播", "图文视频语音、热点、社媒都能做。", {"minimax": 2, "doubao": 2, "grok": 2, "hunyuan": 1}]]}];
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let scores = {};
+let autoTimer = null;
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function initScores() {
+  scores = Object.fromEntries(Object.keys(MODELS).map(k => [k, 0]));
+}
+
+function showToast(text) {
+  const toast = $("toast");
+  toast.textContent = text;
+  toast.classList.add("show");
+  clearTimeout(window.__toast);
+  window.__toast = setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
+function renderModelGrid() {
+  const grid = $("modelGrid");
+  grid.innerHTML = "";
+  Object.keys(MODELS).forEach(key => {
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.innerHTML = `<b>${MODELS[key].name}</b>`;
+    grid.appendChild(chip);
+  });
+}
+
+function showAllModels() {
+  showToast(`这是一个 MBTI 灵感的娱乐向模型匹配游戏：${Object.keys(MODELS).length} 个模型名称、${QUESTIONS.length} 道题。结果不是排名，也不是推荐广告；题目选项只是游戏化表达。`);
+}
+
+function startTest() {
+  clearTimeout(autoTimer);
+  current = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  initScores();
+
+  $("start").style.display = "none";
+  $("result").style.display = "none";
+  $("test").style.display = "block";
+
+  renderQuestion();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderQuestion() {
+  clearTimeout(autoTimer);
+
+  const q = QUESTIONS[current];
+
+  $("counter").textContent = `${current + 1} / ${QUESTIONS.length}`;
+  $("progressBar").style.width = Math.round(current / QUESTIONS.length * 100) + "%";
+  $("question").textContent = q.q;
+
+  const options = $("options");
+  options.innerHTML = "";
+
+  q.a.forEach((item, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "opt" + (answers[current] === index ? " selected" : "");
+    button.innerHTML = `<b>${String.fromCharCode(65 + index)}. ${item[0]}</b><span>${item[1]}</span>`;
+    button.addEventListener("click", () => selectOption(index));
+    options.appendChild(button);
+  });
+
+  $("prevBtn").disabled = current === 0;
+  $("questionTip").textContent = current === QUESTIONS.length - 1
+    ? "选择最后一个答案后，将自动生成结果。"
+    : "选择答案后将自动进入下一题；如需修改，可返回上一题重新选择。";
+}
+
+function selectOption(index) {
+  answers[current] = index;
+  renderQuestion();
+
+  autoTimer = setTimeout(() => {
+    if (current < QUESTIONS.length - 1) {
+      current += 1;
+      renderQuestion();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      showResult();
+    }
+  }, 220);
+}
+
+function prevQuestion() {
+  clearTimeout(autoTimer);
+  if (current > 0) {
+    current -= 1;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+function calculateScores() {
+  initScores();
+
+  answers.forEach((answerIndex, questionIndex) => {
+    if (answerIndex === null) return;
+
+    const weight = QUESTIONS[questionIndex].a[answerIndex][2];
+    Object.entries(weight).forEach(([key, value]) => {
+      scores[key] += value;
+    });
+  });
+}
+
+function showResult() {
+  clearTimeout(autoTimer);
+
+  const missing = answers.findIndex(x => x === null);
+  if (missing !== -1) {
+    current = missing;
+    renderQuestion();
+    showToast(`第 ${missing + 1} 题还没有选择。`);
+    return;
+  }
+
+  calculateScores();
+
+  const ranking = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const [topKey, topScore] = ranking[0];
+  const top = MODELS[topKey];
+  const match = Math.max(60, Math.min(98, Math.round(topScore / (QUESTIONS.length * 3) * 100 + 36)));
+
+  $("test").style.display = "none";
+  $("result").style.display = "block";
+
+  $("badge").textContent = "测试结果";
+  $("resultTitle").textContent = top.name;
+  $("desc").textContent = top.desc;
+  $("score").textContent = match + "%";
+  $("ring").style.setProperty("--deg", Math.round(match * 3.6) + "deg");
+
+  $("strengths").innerHTML = top.strengths.map(x => `<li>${x}</li>`).join("");
+  $("risks").innerHTML = top.risks.map(x => `<li>${x}</li>`).join("");
+  $("usecase").textContent = top.usecase;
+
+  const max = Math.max(ranking[0][1], 1);
+  $("rank").innerHTML = ranking.slice(0, 10).map(([key, value]) => {
+    const pct = Math.round(value / max * 100);
+    return `<div class="rank-row"><span>${MODELS[key].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span>${value}</span></div>`;
+  }).join("");
+
+  const second = MODELS[ranking[1][0]];
+  $("shareText").textContent = `我刚解锁了自己的 AI 模型适配档案：主力模型是 ${top.name}，适配度 ${match}%。备选搭子是 ${second.name}。我的使用路线：${top.usecase}`;
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function copyResult() {
+  const text = $("shareText").textContent;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast("结果已复制"));
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+    showToast("结果已复制");
+  }
+}
+
+
+function goHome() {
+  clearTimeout(autoTimer);
+  $("test").style.display = "none";
+  $("result").style.display = "none";
+  $("start").style.display = "grid";
+  current = 0;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderModelGrid();
+  $("startBtn").addEventListener("click", startTest);
+  $("modelBtn").addEventListener("click", showAllModels);
+  $("prevBtn").addEventListener("click", prevQuestion);
+  $("copyBtn").addEventListener("click", copyResult);
+  $("restartBtn").addEventListener("click", startTest);
+  $("homeBtn").addEventListener("click", goHome);
+});
+</script>
+</body>
+</html>
